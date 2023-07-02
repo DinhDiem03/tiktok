@@ -1,70 +1,176 @@
-# Getting Started with Create React App
+// actions
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+import {SET_JOB,ADD_JOB,DELETE_JOB,DETAIL_JOB,UPDATE_JOB} from "./constant"
 
-## Available Scripts
+export const setJob = (payload) => {
+    return {
+      type: SET_JOB,
+      payload,
+    };
+  };
+  export const addJob = (payload) => {
+    return {
+      type: ADD_JOB,
+      payload,
+    };
+  };
+  export const deleteJob = (payload) => {
+    return {
+      type: DELETE_JOB,
+      payload,
+    };
+  };
+  export const detailJob = (payload) => {
+    return {
+      type: DETAIL_JOB,
+      payload,
+    };
+  };
+  export const updateJob = (payload) => {
+    return {
+      type: UPDATE_JOB,
+      payload,
+    };
+  };
 
-In the project directory, you can run:
+  //constants
+  export const SET_JOB = "set_job";
+export const ADD_JOB = "add_job";
+export const DELETE_JOB = "delete_job";
+export const DETAIL_JOB = "detail_job";
+export const UPDATE_JOB = "update_job";
 
-### `npm start`
+// logger
+function logger(reducer) {
+  return (prevState, action) => {
+    console.group(action.type);
+    console.log("Prev state:", prevState);
+    console.log('Action:', action);
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+    const newState = reducer(prevState, action);
+    
+    console.log("New state:", newState);
+    console.groupEnd();
+    return newState;
+  };
+}
+export default logger;
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
 
-### `npm test`
+// reducer
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+import {SET_JOB,ADD_JOB,DELETE_JOB,DETAIL_JOB,UPDATE_JOB} from "./constant"
 
-### `npm run build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+export const initState = {
+    job: "",
+    jobs: [],
+  };
+  // Reducer
+  const reducer = (state, action) => {
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+    // let index = action.payload;
+    switch (action.type) {
+      case SET_JOB:
+        return {
+          ...state,
+          job: action.payload,
+        };
+  
+      case ADD_JOB:
+        return {
+          ...state,
+          jobs: [...state.jobs, action.payload],
+        };
+  
+      case DELETE_JOB:
+        const newJob = [...state.jobs];
+        newJob.splice(action.payload, 1);
+        return {
+          ...state,
+          jobs: newJob,
+        };
+      case DETAIL_JOB:
+        const index = action.payload
+        const jobDetail = state.jobs[index];
+        return {
+          
+          ...state,
+          job: jobDetail,
+          jobIndex: index
+        };
+      case UPDATE_JOB:
+        const updateJob =[...state.jobs]
+          updateJob[state.jobIndex] = action.payload
+         
+        return {
+          ...state,        
+           jobs: updateJob,
+          jobIndex: null
+        };
+  
+      default:
+        throw new Error("Invalid action");
+    }
+  };
 
-### `npm run eject`
+  export default reducer
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+  // index
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+  import { useRef } from "react";
+import { useReducer } from "react";
+import reducer ,{initState} from "./reducer";
+import { addJob,deleteJob,detailJob,setJob,updateJob } from "./actions";
+import logger from "./logger";
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+function Reducer() {
+  const [state, dispatch] = useReducer(logger(reducer), initState);
+  const { job, jobs } = state;
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+  const inRef = useRef();
 
-## Learn More
+  const handleSubmit = () => {
+    dispatch(addJob(job));
+    dispatch(setJob(""));
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+    inRef.current.focus();
+  };
+  const handleUpdate = () => {
+    dispatch(updateJob(job));
+    dispatch(setJob(""));
+   
+  };
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+  return (
+    <div>
+      <input
+        ref={inRef}
+        value={job}
+        placeholder="Enter todo..."
+        onChange={(e) => {
+          dispatch(setJob(e.target.value));
+        }}
+      />
+      <button onClick={handleSubmit}>Add</button>
+      <button onClick={handleUpdate}>Update</button>
 
-### Code Splitting
+      <ul>
+        {jobs.map((item, index) => (
+          <li key={index}>
+            {item}
+            <button onClick={() => dispatch(deleteJob(index))}>
+             
+              &times;
+            </button>
+            <button onClick={() => dispatch(detailJob(index))}> Detail </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+export default Reducer;
 
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
